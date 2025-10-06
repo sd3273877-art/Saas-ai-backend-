@@ -1,0 +1,23 @@
+{
+  "name": "audio-ai-studio",
+  "private": true,
+  "version": "0.1.0",
+  "license": "MIT",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "engines": {
+    "node": ">=18.18.0",
+    "npm": ">=9.0.0"
+  },
+  "scripts": {
+    "build": "npm run -ws build",
+    "dev": "npm run -w apps/web dev",
+    "dev:api": "npm run -w apps/api dev",
+    "dev:worker": "npm run -w apps/worker dev",
+    "lint": "npm run -ws lint",
+    "typecheck": "npm run -ws typecheck",
+    "format": "prettier --write ."
+  }
+}
