@@ -1,7 +1,13 @@
+"use client";
 import Link from 'next/link';
 import { Menu } from 'lucide-react';
+import { useEffect, useState } from 'react';
 
 export function Nav() {
+  const [isAuthed, setIsAuthed] = useState(false);
+  useEffect(() => {
+    setIsAuthed(!!localStorage.getItem('af_jwt'));
+  }, []);
   return (
     <nav className="flex items-center justify-between py-4">
       <Link href="/" className="text-xl font-semibold">
@@ -15,6 +21,13 @@ export function Nav() {
       </div>
       <div className="md:hidden">
         <Menu />
+      </div>
+      <div className="hidden md:block">
+        {!isAuthed ? (
+          <Link href="/signup" className="px-3 py-2 bg-brand-600 rounded">Sign up</Link>
+        ) : (
+          <button className="text-sm text-gray-300" onClick={() => { localStorage.removeItem('af_jwt'); window.location.reload(); }}>Log out</button>
+        )}
       </div>
     </nav>
   );
