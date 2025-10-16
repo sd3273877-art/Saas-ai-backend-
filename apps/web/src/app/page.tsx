@@ -7,9 +7,7 @@ export default function HomePage() {
       <Nav />
       <section className="py-16 text-center">
         <h1 className="text-4xl md:text-6xl font-bold tracking-tight">Ultra‑realistic AI Voice Studio</h1>
-        <p className="mt-4 text-lg text-gray-300">
-          TTS, STT, dubbing, voice cloning, and conversational AI — in one platform.
-        </p>
+        <p className="mt-4 text-lg text-gray-300">TTS, STT, dubbing, voice cloning, and conversational AI — in one platform.</p>
         <div className="mt-8 flex items-center justify-center gap-4">
           <Link href="/studio" className="px-5 py-3 bg-brand-600 rounded-md font-medium">
             Try Studio

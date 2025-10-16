@@ -1,6 +1,13 @@
+"use client";
 import { Nav } from '@/components/Nav';
+import { useEffect, useState } from 'react';
 
 export default function DashboardPage() {
+  const [jobs, setJobs] = useState<{id:string; type:string; status:string}[]>([]);
+  useEffect(() => {
+    // Placeholder: in real app fetch from API
+    setJobs([{ id: '1', type: 'tts', status: 'completed' }]);
+  }, []);
   return (
     <main>
       <Nav />
@@ -15,8 +22,7 @@ export default function DashboardPage() {
           <div className="rounded-lg border border-gray-700 p-4">
             <h3 className="font-semibold">Recent Jobs</h3>
             <ul className="mt-2 text-sm text-gray-300 space-y-1">
-              <li>tts: Hello world.mp3</li>
-              <li>stt: interview.wav</li>
+              {jobs.map(j => (<li key={j.id}>{j.type}: {j.status}</li>))}
             </ul>
           </div>
           <div className="rounded-lg border border-gray-700 p-4">

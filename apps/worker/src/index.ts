@@ -1,9 +1,10 @@
 import { Queue, Worker, Job } from 'bullmq';
 import { S3Client } from '@aws-sdk/client-s3';
-import IORedis from 'ioredis';
+import { Redis } from 'ioredis';
 import 'dotenv/config';
+import { PrismaClient } from '@prisma/client';
 
-const connection = new IORedis(process.env.REDIS_URL || 'redis://localhost:6379');
+const connection = new Redis(process.env.REDIS_URL || 'redis://localhost:6379');
 export const queues = {
   tts: new Queue('tts', { connection }),
   stt: new Queue('stt', { connection }),
@@ -19,17 +20,25 @@ const s3 = new S3Client({
     : undefined,
 });
 
+const prisma = new PrismaClient();
+
 async function handleTts(job: Job) {
-  // Placeholder: generate silent mp3 or return a stub URL
-  return { url: 's3://audio-ai/placeholder.mp3', input: job.data };
+  const url = 's3://audio-ai/placeholder.mp3';
+  await prisma.job.update({ where: { id: job.id as string }, data: { status: 'completed', result: { url } } }).catch(() => {});
+  return { url, input: job.data };
 }
 
 async function handleStt(job: Job) {
-  return { transcript: 'Hello world', words: [{ start: 0, end: 0.5, text: 'Hello' }] };
+  const result = { transcript: 'Hello world', words: [{ start: 0, end: 0.5, text: 'Hello' }] };
+  await prisma.job.update({ where: { id: job.id as string }, data: { status: 'completed', result } }).catch(() => {});
+  return result;
 }
 
 async function handleCloning(job: Job) {
-  return { cloneId: 'vc_' + job.id, status: 'ready' };
+  const cloneId = (job.data as any).cloneId || 'vc_' + job.id;
+  await prisma.voiceClone.update({ where: { id: cloneId }, data: { status: 'ready', modelRef: `model_${cloneId}` } }).catch(() => {});
+  await prisma.job.update({ where: { id: job.id as string }, data: { status: 'completed', result: { cloneId, status: 'ready' } } }).catch(() => {});
+  return { cloneId, status: 'ready' };
 }
 
 new Worker('tts', handleTts, { connection });

@@ -1,7 +1,7 @@
 import { Queue, Job, QueueOptions } from 'bullmq';
-import IORedis from 'ioredis';
+import { Redis } from 'ioredis';
 
-const connection = new IORedis(process.env.REDIS_URL || 'redis://localhost:6379');
+const connection = new Redis(process.env.REDIS_URL || 'redis://localhost:6379');
 
 const defaultOptions: QueueOptions = { connection } as any;
 
@@ -20,3 +20,5 @@ export async function getJobById(id: string): Promise<Job | null> {
   }
   return null;
 }
+
+export type Queues = typeof queues;
