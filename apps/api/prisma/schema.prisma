@@ -1,0 +1,176 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  owner
+  admin
+  editor
+  viewer
+}
+
+enum Plan {
+  FREE
+  STARTER
+  CREATOR
+  PRO
+  SCALE
+  BUSINESS
+  ENTERPRISE
+}
+
+enum JobType {
+  tts
+  stt
+  cloning
+  dubbing
+}
+
+enum JobStatus {
+  queued
+  processing
+  completed
+  failed
+}
+
+enum CloneStatus {
+  queued
+  processing
+  ready
+  failed
+}
+
+model User {
+  id           String       @id @default(cuid())
+  email        String       @unique
+  passwordHash String
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
+  memberships  TeamMember[]
+}
+
+model Team {
+  id            String        @id @default(cuid())
+  name          String
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+  memberships   TeamMember[]
+  projects      Project[]
+  subscription  Subscription?
+  usageLogs     UsageLog[]
+  jobs          Job[]
+  voiceClones   VoiceClone[]
+}
+
+model TeamMember {
+  id        String  @id @default(cuid())
+  teamId    String
+  userId    String
+  role      Role
+  createdAt DateTime @default(now())
+
+  team Team @relation(fields: [teamId], references: [id])
+  user User @relation(fields: [userId], references: [id])
+
+  @@unique([teamId, userId])
+}
+
+model Project {
+  id        String   @id @default(cuid())
+  teamId    String
+  name      String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  team     Team     @relation(fields: [teamId], references: [id])
+  apiKeys  ApiKey[]
+  jobs     Job[]
+}
+
+model ApiKey {
+  id          String   @id @default(cuid())
+  projectId   String
+  name        String
+  prefix      String
+  hashedKey   String
+  createdAt   DateTime @default(now())
+  revokedAt   DateTime?
+
+  project Project @relation(fields: [projectId], references: [id])
+
+  @@index([projectId])
+}
+
+model Subscription {
+  id               String   @id @default(cuid())
+  teamId           String   @unique
+  plan             Plan
+  creditsMonthly   Int
+  stripeCustomerId String?
+  stripeSubId      String?
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  team Team @relation(fields: [teamId], references: [id])
+}
+
+model UsageLog {
+  id        String    @id @default(cuid())
+  teamId    String
+  projectId String?
+  type      JobType
+  credits   Int
+  metadata  Json?
+  createdAt DateTime  @default(now())
+
+  team    Team    @relation(fields: [teamId], references: [id])
+  project Project? @relation(fields: [projectId], references: [id])
+
+  @@index([teamId])
+  @@index([projectId])
+}
+
+model Job {
+  id         String    @id @default(cuid())
+  teamId     String
+  projectId  String?
+  type       JobType
+  status     JobStatus @default(queued)
+  queueName  String
+  queueJobId String?   @unique
+  requestedBy String?
+  voiceId    String?
+  language   String?
+  format     String?
+  inputText  String?
+  s3Path     String?
+  resultUrl  String?
+  error      String?
+  credits    Int       @default(0)
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+
+  team    Team    @relation(fields: [teamId], references: [id])
+  project Project? @relation(fields: [projectId], references: [id])
+
+  @@index([teamId])
+  @@index([projectId])
+  @@index([type, status])
+}
+
+model VoiceClone {
+  id        String      @id @default(cuid())
+  teamId    String
+  name      String
+  status    CloneStatus @default(queued)
+  s3Path    String?
+  createdAt DateTime    @default(now())
+  updatedAt DateTime    @updatedAt
+
+  team Team @relation(fields: [teamId], references: [id])
+}
